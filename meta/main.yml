@@ -1,5 +1,7 @@
 galaxy_info:
-  author: your name
+  author: haku
+  role_name: my_rolename
+  namespace: my_namespace
   description: your role description
   company: your company (optional)
 

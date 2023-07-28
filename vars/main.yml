@@ -1,5 +1,14 @@
 ---
-vector_config_path: /etc/vector/vector.yaml
+vector_debian_arch:
+  armv7l: armhf
+  aarch64: arm64
+  x86_64: amd64
+vector_redhat_arch:
+  armv7l: armv7hl
+  aarch64: aarch64
+  x86_64: x86_64
+
+vector_config_path: /etc/vector/vector.toml
 vector_config:
   sources:
     internal_logs:

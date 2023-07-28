@@ -1,15 +1,24 @@
 ---
-- name: Get vector distrib
-  ansible.builtin.get_url:
-    url: "https://packages.timber.io/vector/{{ vector_version }}/vector-{{ vector_version }}-1.x86_64.rpm"
-    dest: "./vector-{{ vector_version }}-1.x86_64.rpm"
-    mode: 0644
-- name: Install Vector packages
-  become: true
-  ansible.builtin.yum:
-    name: "vector-{{ vector_version }}-1.x86_64.rpm"
+- name: Install Vector (Debian)
+  apt:
+    deb: "https://packages.timber.io/vector/{{ version }}/vector_{{ version }}-1_{{ arch }}.deb"
+    install_recommends: yes
+  vars:
+    version: "{{ (vector_version == 'nightly')| bool | ternary('nightly/latest', vector_version) }}"
+    arch: "{{ vector_debian_arch[ansible_machine] }}"
+  when: ansible_os_family == 'Debian'
+
+- name: Install Vector (RedHat)
+  yum:
+    name: "https://packages.timber.io/vector/{{ version }}/vector-{{ package_version }}.{{ arch }}.rpm"
     state: present
-  notify: Start Vector service
+    disable_gpg_check: yes # package is not signed
+  vars:
+    version: "{{ (vector_version == 'nightly')| bool | ternary('nightly/latest', vector_version) }}"
+    package_version: "{{ vector_version is match('latest') | ternary(vector_version, vector_version ~ '-1') }}"
+    arch: "{{ vector_redhat_arch[ansible_machine] }}"
+  when: ansible_os_family == 'RedHat'
+
 - name: Deploy config Vector
   ansible.builtin.template:
     src: vector.j2
@@ -18,10 +27,7 @@
     owner: "{{ ansible_user_id }}"
     group: "{{ ansible_user_gid }}"
     validate: vector validate --no-environment --config-yaml %s
-  become: true
-  notify: Start Vector service
 - name: Creates directory
-  become: true
   file:
     path: /var/lib/vector/local_logs
     state: directory
@@ -29,7 +35,6 @@
     group: "{{ ansible_user_gid }}"
     mode: 0644
 - name: Create systemd unit Vector
-  become: true
   template:
     src: vector.service.j2
     dest: /etc/systemd/system/vector.service

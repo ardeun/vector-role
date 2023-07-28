@@ -1,0 +1,19 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+lint: |
+  ansible-lint .
+  yamllint .
+platforms:
+  - name: instance
+    image: docker.io/aragast/netology:latest
+    pre_build_image: true
+  - name: ubuntu 
+    image: docker.io/jgeusebroek/ubuntu2004-molecule
+    pre_build_image: true
+provisioner:
+  name: ansible
+verifier:
+  name: ansible
